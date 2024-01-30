@@ -1,5 +1,11 @@
 # hyperifyio/goeventd
 
+[![Go Build and Release](https://github.com/hyperifyio/goeventd/actions/workflows/build.yml/badge.svg?branch=main)](https://github.com/hyperifyio/goeventd/actions/workflows/build.yml)
+
+[![Go Build and Release](https://github.com/hyperifyio/goeventd/actions/workflows/build.yml/badge.svg?branch=main&event=release)](https://github.com/hyperifyio/goeventd/actions/workflows/build.yml)
+
+[![Go Build and Release](https://github.com/hyperifyio/goeventd/actions/workflows/build.yml/badge.svg?branch=main&event=issues)](https://github.com/hyperifyio/goeventd/actions/workflows/build.yml)
+
 Simple microservice to trigger SystemD services from NatsIO events.
 
 ```
