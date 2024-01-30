@@ -6,6 +6,7 @@ on:
     - 'v*'
 
 jobs:
+
   build:
     name: Build on ${{ matrix.os }} for ${{ matrix.arch }}
     runs-on: ubuntu-latest
@@ -27,23 +28,31 @@ jobs:
       run: curl -sSfL https://raw.githubusercontent.com/anchore/syft/main/install.sh | sh -s -- -b /usr/local/bin
     - name: Generate SBOM
       run: syft goeventd -o text > NOTICE
+
+    - name: Prepare Artifacts
+      run: |
+        mkdir goeventd-${{ matrix.os }}-${{ matrix.arch }}
+        mv goeventd goeventd-${{ matrix.os }}-${{ matrix.arch }}/goeventd
+        mv NOTICE goeventd-${{ matrix.os }}-${{ matrix.arch }}/NOTICE
+        cp LICENSE.md goeventd-${{ matrix.os }}-${{ matrix.arch }}/LICENSE.md
+        zip -r goeventd-${{ matrix.os }}-${{ matrix.arch }}.zip goeventd-${{ matrix.os }}-${{ matrix.arch }}
+
     - name: Upload Artifact
-      uses: actions/upload-artifact@v2
+      uses: actions/upload-artifact@v4
       with:
-        name: goeventd-${{ matrix.os }}-${{ matrix.arch }}
-        path: |
-          goeventd
-          LICENSE.md
-          NOTICE
+        name: goeventd-${{ matrix.os }}-${{ matrix.arch }}.zip
+        path: goeventd-${{ matrix.os }}-${{ matrix.arch }}.zip
 
   release:
     needs: build
     runs-on: ubuntu-latest
     steps:
+
     - name: Download Artifacts
       uses: actions/download-artifact@v2
       with:
         path: .
+
     - name: Create Release
       id: create_release
       uses: actions/create-release@v1
@@ -54,12 +63,23 @@ jobs:
         release_name: Release ${{ github.ref }}
         draft: false
         prerelease: false
-    - name: Upload Release Assets
+
+    - name: Upload Release Assets for linux-amd64
       uses: actions/upload-release-asset@v1
       env:
         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
       with:
         upload_url: ${{ steps.create_release.outputs.upload_url }}
-        asset_path: ./goeventd
-        asset_name: goeventd-${{ matrix.os }}-${{ matrix.arch }}
+        asset_path: ./goeventd-linux-amd64.zip
+        asset_name: goeventd-linux-amd64.zip
+        asset_content_type: application/octet-stream
+
+    - name: Upload Release Assets for linux-arm64
+      uses: actions/upload-release-asset@v1
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      with:
+        upload_url: ${{ steps.create_release.outputs.upload_url }}
+        asset_path: ./goeventd-linux-arm64.zip
+        asset_name: goeventd-linux-arm64.zip
         asset_content_type: application/octet-stream
