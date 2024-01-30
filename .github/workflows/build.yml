@@ -14,7 +14,7 @@ jobs:
     strategy:
       matrix:
         os: [linux]
-        arch: [amd64, arm64]
+        arch: [amd64, arm64, 386, armv5, armv6, armv7, mips, mips64, mips64le, mipsle, ppc64, ppc64le, riscv64, s390x]
     steps:
 
     - name: Extract Tag Name
@@ -53,17 +53,20 @@ jobs:
     runs-on: ubuntu-latest
     steps:
 
+    - name: Set MIT LICENSE Date
+      run: echo "MIT_DATE=$(date -d "+2 years" +'%Y-%m-%d')" >> $GITHUB_ENV
+
     - name: Extract Tag Name
       run: echo "TAG_NAME=$(echo ${GITHUB_REF#refs/tags/})" >> $GITHUB_ENV
+
+    - name: Set Current Date
+      run: echo "CURRENT_DATE=$(date +'%Y-%m-%d')" >> $GITHUB_ENV
 
     - name: Download Artifacts
       uses: actions/download-artifact@v4
       with:
         path: .
         pattern: goeventd-v*
-
-    - name: List files in the directory
-      run: ls -l
 
     - name: Create Release
       id: create_release
@@ -72,26 +75,33 @@ jobs:
         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
       with:
         tag_name: ${{ github.ref }}
-        release_name: Release ${{ github.ref }}
+        release_name: ${{ github.ref }} / ${{ env.CURRENT_DATE }}
         draft: false
         prerelease: false
+        body: |
+          This release is provided under the HG Evaluation and Non-Commercial 
+          License. This means you can use, modify, and distribute this software 
+          version solely for non-commercial and evaluation purposes until 
+          ${{ env.MIT_DATE }}. After this date, the licensing terms for this 
+          software release will automatically transition to the MIT License, 
+          granting you broader usage rights, including for commercial purposes. 
+          Please refer to the full license text for detailed terms and conditions.
 
-    - name: Upload Release Assets for linux-amd64
-      uses: actions/upload-release-asset@v1
+    - name: Upload Release Assets
+      run: |
+        for arch in amd64 arm64 386 armv5 armv6 armv7 mips mips64 mips64le mipsle ppc64 ppc64le riscv64 s390x; do
+          file="goeventd-${{ env.TAG_NAME }}-linux-$arch/goeventd-${{ env.TAG_NAME }}-linux-$arch.zip"
+          if [ -f "$file" ]; then
+            echo "Uploading $file"
+            curl \
+              -X POST \
+              -H "Authorization: token ${{ secrets.GITHUB_TOKEN }}" \
+              -H "Content-Type: application/octet-stream" \
+              --data-binary @"$file" \
+              "${{ steps.create_release.outputs.upload_url }}?name=$(basename $file)"
+          else
+            echo "$file not found, skipping..."
+          fi
+        done
       env:
         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-      with:
-        upload_url: ${{ steps.create_release.outputs.upload_url }}
-        asset_path: ./goeventd-${{ env.TAG_NAME }}-linux-amd64/goeventd-${{ env.TAG_NAME }}-linux-amd64.zip
-        asset_name: goeventd-${{ env.TAG_NAME }}-linux-amd64
-        asset_content_type: application/octet-stream
-
-    - name: Upload Release Assets for linux-arm64
-      uses: actions/upload-release-asset@v1
-      env:
-        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-      with:
-        upload_url: ${{ steps.create_release.outputs.upload_url }}
-        asset_path: ./goeventd-${{ env.TAG_NAME }}-linux-arm64/goeventd-${{ env.TAG_NAME }}-linux-arm64.zip
-        asset_name: goeventd-${{ env.TAG_NAME }}-linux-arm64
-        asset_content_type: application/octet-stream
