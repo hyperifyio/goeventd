@@ -40,7 +40,7 @@ jobs:
     - name: Upload Artifact
       uses: actions/upload-artifact@v4
       with:
-        name: goeventd-${{ matrix.os }}-${{ matrix.arch }}.zip
+        name: goeventd-${{ matrix.os }}-${{ matrix.arch }}
         path: goeventd-${{ matrix.os }}-${{ matrix.arch }}.zip
 
   release:
