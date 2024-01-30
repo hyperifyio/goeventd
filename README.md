@@ -5,8 +5,8 @@ facilitate the interaction between NatsIO events and SystemD services.
 It's a simple, yet powerful tool for triggering SystemD services based on 
 specific events in a NatsIO stream.
 
-![main branch status](https://github.com/hyperifyio/goeventd/actions/workflows/publish.yml/badge.svg?branch=main)
-![dev branch status](https://github.com/hyperifyio/goeventd/actions/workflows/dev.yml/badge.svg?branch=dev)
+![main branch status](https://github.com/hyperifyio/goeventd/actions/workflows/build.yml/badge.svg?branch=main)
+![dev branch status](https://github.com/hyperifyio/goeventd/actions/workflows/build.yml/badge.svg?branch=dev)
 
 ## Getting Started
 
