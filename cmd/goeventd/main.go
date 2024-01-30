@@ -23,7 +23,6 @@ type Config struct {
 }
 
 var (
-    // Define the new shutdown flag
     natsServer = flag.String("nats", "nats://localhost:4222", "The NATS server URL")
     subject = flag.String("subject", "", "The NATS subject to subscribe to")
     serviceName = flag.String("service", "", "The SystemD service to trigger")

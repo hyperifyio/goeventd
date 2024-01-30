@@ -1,0 +1,11 @@
+version: '3.8'
+
+services:
+  goeventd-nats:
+    image: nats:latest
+    container_name: nats-server
+    ports:
+    - "4222:4222" # Client connections
+    - "8222:8222" # HTTP monitoring
+    environment:
+    - NATS_SERVER_NAME=goeventd-nats

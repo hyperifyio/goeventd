@@ -79,12 +79,18 @@ jobs:
         draft: false
         prerelease: false
         body: |
-          This release is provided under the HG Evaluation and Non-Commercial 
-          License. This means you can use, modify, and distribute this software 
-          version solely for non-commercial and evaluation purposes until 
-          ${{ env.MIT_DATE }}. After this date, the licensing terms for this 
-          software release will automatically transition to the MIT License, 
-          granting you broader usage rights, including for commercial purposes. 
+          This release is provided under **the HG Evaluation and Non-Commercial 
+          License**. This means you can use, modify, and distribute this 
+          software version solely for non-commercial and evaluation purposes 
+          until **${{ env.MIT_DATE }}**. After this date, the licensing terms 
+          for this software release will automatically transition to **the MIT 
+          License**, granting you broader usage rights, *including for 
+          commercial purposes*.
+
+          For commercial license options before **${{ env.MIT_DATE }}**, please 
+          contact sales at [sales@hg.fi](mailto:sales@hg.fi) or 
+          visit our [website](https://www.heusalagroup.com).
+
           Please refer to the full license text for detailed terms and conditions.
 
     - name: Upload Release Assets
