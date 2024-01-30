@@ -60,6 +60,7 @@ jobs:
       uses: actions/download-artifact@v4
       with:
         path: .
+        pattern: goeventd-v*
 
     - name: List files in the directory
       run: ls -l
@@ -81,7 +82,7 @@ jobs:
         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
       with:
         upload_url: ${{ steps.create_release.outputs.upload_url }}
-        asset_path: ./goeventd-${{ env.TAG_NAME }}-linux-amd64.zip
+        asset_path: ./goeventd-${{ env.TAG_NAME }}-linux-amd64/goeventd-${{ env.TAG_NAME }}-linux-amd64.zip
         asset_name: goeventd-${{ env.TAG_NAME }}-linux-amd64
         asset_content_type: application/octet-stream
 
@@ -91,6 +92,6 @@ jobs:
         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
       with:
         upload_url: ${{ steps.create_release.outputs.upload_url }}
-        asset_path: ./goeventd-${{ env.TAG_NAME }}-linux-arm64.zip
+        asset_path: ./goeventd-${{ env.TAG_NAME }}-linux-arm64/goeventd-${{ env.TAG_NAME }}-linux-arm64.zip
         asset_name: goeventd-${{ env.TAG_NAME }}-linux-arm64
         asset_content_type: application/octet-stream
