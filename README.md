@@ -1,6 +1,6 @@
 # hyperifyio/goeventd
 
-This repository hosts `hyperifyio/goeventd`, a microservice designed to 
+This repository hosts `goeventd`, a microservice designed to 
 facilitate the interaction between NatsIO events and SystemD services. 
 It's a simple, yet powerful tool for triggering SystemD services based on 
 specific events in a NatsIO stream.
