@@ -1,4 +1,4 @@
-.PHONY: build clean download
+.PHONY: build clean download tidy
 
 GO_EVENTD_SOURCES := ./messaging/messaging.go \
               ./natsclient/natsclient.go \
@@ -10,6 +10,9 @@ all: build
 
 build: goeventd goeventd-client
 
+tidy:
+	go mod tidy
+
 download:
 	go mod download github.com/nats-io/nats.go
 
@@ -20,4 +23,4 @@ goeventd-client: $(GO_EVENTD_CLIENT_SOURCES)
 	GOOS=$(GOOS) GOARCH=$(GOARCH) go build -o goeventd-client ./cmd/goeventd-client
 
 clean:
-	rm -f goeventd
+	rm -f goeventd goeventd-client

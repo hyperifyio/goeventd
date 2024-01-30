@@ -1,3 +1,4 @@
+// Copyright (c) 2024. Heusala Group Oy <info@heusalagroup.fi>. All rights reserved.
 
 package main
 
@@ -7,14 +8,16 @@ import (
     "fmt"
     "github.com/hyperifyio/goeventd/messaging"
     "github.com/hyperifyio/goeventd/natsclient"
+    "github.com/nats-io/nats.go"
     "io/ioutil"
     "log"
+    "os"
     "os/exec"
 )
 
 type ServiceConfig struct {
     Subject     string `json:"subject"`
-    ServiceName string `json:"serviceName"`
+    ServiceName string `json:"service"`
 }
 
 type Config struct {
@@ -23,21 +26,26 @@ type Config struct {
 }
 
 var (
-    natsServer = flag.String("nats", "nats://localhost:4222", "The NATS server URL")
-    subject = flag.String("subject", "", "The NATS subject to subscribe to")
-    serviceName = flag.String("service", "", "The SystemD service to trigger")
+    natsServer = flag.String("nats", os.Getenv("GOEVENTD_NATS_URL"), "The NATS server URL")
+    subject = flag.String("subject", os.Getenv("GOEVENTD_SUBJECT"), "The NATS subject to subscribe to")
+    service = flag.String("service", os.Getenv("GOEVENTD_SERVICE"), "The SystemD service to trigger")
     shutdownAfterRun = flag.Bool("once", false, "Shutdown the service after one successful SystemD service execution")
-    configFilePath = flag.String("config", "", "Path to configuration file")
+    configFilePath = flag.String("config", os.Getenv("GOEVENTD_CONFIG"), "Path to configuration file")
 )
 
 func main() {
 
     var msgHandler messaging.MessageHandler
+    var config *Config
+    var err error
 
     flag.Parse()
 
-    var config *Config
-    var err error
+    // Get NATS URL from environment variable or use default
+    if *natsServer == "" {
+        defaultURL := nats.DefaultURL
+        natsServer = &defaultURL
+    }
 
     // If a config file is provided, use it
     if *configFilePath != "" {
@@ -46,13 +54,22 @@ func main() {
             log.Fatalf("Error reading config file: %s", err)
         }
     } else {
+
+        if *subject == "" {
+            log.Fatal("--subject cannot be empty")
+        }
+
+        if *service == "" {
+            log.Fatal("--service cannot be empty")
+        }
+
         // Otherwise, use command line arguments
         config = &Config{
             NATSServer: *natsServer,
             ServiceConfig: []ServiceConfig{
                 {
                     Subject:     *subject,
-                    ServiceName: *serviceName,
+                    ServiceName: *service,
                 },
             },
         }
@@ -70,10 +87,13 @@ func main() {
     // Subscribe to a subject
     for _, sc := range config.ServiceConfig {
         err := msgHandler.Subscribe(sc.Subject, func(msg string) {
+            fmt.Printf("Event(%s): %s\n", sc.Subject, msg)
             triggerSystemDService(sc.ServiceName)
         })
         if err != nil {
             log.Fatalf("Error subscribing to subject %s: %s", sc.Subject, err)
+        } else {
+            fmt.Printf("Successfully subscribed to: %s\n", sc.Subject)
         }
     }
 
@@ -81,14 +101,15 @@ func main() {
     select {}
 }
 
-func triggerSystemDService(serviceName string) bool {
-    cmd := exec.Command("systemctl", "start", serviceName)
+func triggerSystemDService(service string) bool {
+    fmt.Printf("Executing: systemctl start %s\n", service)
+    cmd := exec.Command("systemctl", "start", service)
     err := cmd.Run()
     if err != nil {
-        fmt.Printf("Error triggering SystemD service %s: %s\n", serviceName, err)
+        fmt.Printf("Error triggering SystemD service %s using 'systemctl start %s': %s\n", service, service, err)
         return false
     }
-    fmt.Printf("Successfully triggered SystemD service: %s\n", serviceName)
+    fmt.Printf("Successfully triggered SystemD service: %s\n", service)
     return true
 }
 

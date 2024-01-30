@@ -1,6 +1,7 @@
 version: '3.8'
 
 services:
+
   goeventd-nats:
     image: nats:latest
     container_name: nats-server
@@ -9,3 +10,16 @@ services:
     - "8222:8222" # HTTP monitoring
     environment:
     - NATS_SERVER_NAME=goeventd-nats
+
+  goeventd:
+    build: .
+    container_name: goeventd
+    ports:
+    - "9500:9500"
+    restart: unless-stopped
+    environment:
+    - GOEVENTD_NATS_URL=nats://goeventd-nats:4222
+    - GOEVENTD_SUBJECT=test
+    - GOEVENTD_SERVICE=nginx
+    depends_on:
+    - goeventd-nats

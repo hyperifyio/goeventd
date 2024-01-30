@@ -1,0 +1,13 @@
+[Unit]
+Description=GoEventD Service
+After=network.target nats.service
+
+[Service]
+Type=simple
+User=goeventd
+Group=goeventd
+ExecStart=/usr/local/bin/goeventd --subject=ansible.nginx --service=ansible-nginx
+Restart=on-failure
+
+[Install]
+WantedBy=multi-user.target
