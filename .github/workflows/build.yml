@@ -1,0 +1,58 @@
+name: Go Build and Release
+
+on:
+  push:
+    tags:
+    - 'v*'
+
+jobs:
+  build:
+    name: Build on ${{ matrix.os }} for ${{ matrix.arch }}
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        os: [linux]
+        arch: [amd64, arm64]
+    steps:
+    - name: Set up Go
+      uses: actions/setup-go@v2
+      with:
+        go-version: '1.16.x'
+    - name: Check out code
+      uses: actions/checkout@v2
+    - name: Build
+      run: |
+        make build GOOS=${{ matrix.os }} GOARCH=${{ matrix.arch }}
+    - name: Upload Artifact
+      uses: actions/upload-artifact@v2
+      with:
+        name: goeventd-${{ matrix.os }}-${{ matrix.arch }}
+        path: goeventd
+
+  release:
+    needs: build
+    runs-on: ubuntu-latest
+    steps:
+    - name: Download Artifacts
+      uses: actions/download-artifact@v2
+      with:
+        path: .
+    - name: Create Release
+      id: create_release
+      uses: actions/create-release@v1
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      with:
+        tag_name: ${{ github.ref }}
+        release_name: Release ${{ github.ref }}
+        draft: false
+        prerelease: false
+    - name: Upload Release Assets
+      uses: actions/upload-release-asset@v1
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      with:
+        upload_url: ${{ steps.create_release.outputs.upload_url }}
+        asset_path: ./goeventd-${{ matrix.os }}-${{ matrix.arch }}
+        asset_name: goeventd-${{ matrix.os }}-${{ matrix.arch }}
+        asset_content_type: application/octet-stream
