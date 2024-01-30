@@ -11,7 +11,7 @@ build: goeventd
 download:
 	go mod download github.com/nats-io/nats.go
 
-goeventd: $(GO_SOURCES) download
+goeventd: $(GO_SOURCES)
 	GOOS=$(GOOS) GOARCH=$(GOARCH) go build -o goeventd ./cmd/goeventd
 
 clean:

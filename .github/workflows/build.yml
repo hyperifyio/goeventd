@@ -72,6 +72,9 @@ jobs:
         draft: false
         prerelease: false
 
+    - name: List files in the directory
+      run: ls -l
+
     - name: Upload Release Assets for linux-amd64
       uses: actions/upload-release-asset@v1
       env:
