@@ -98,7 +98,7 @@ jobs:
               -H "Authorization: token ${{ secrets.GITHUB_TOKEN }}" \
               -H "Content-Type: application/octet-stream" \
               --data-binary @"$file" \
-              "${{ steps.create_release.outputs.upload_url }}?name=$(basename $file)"
+              "${{ steps.create_release.outputs.upload_url }}=$(basename $file)"
           else
             echo "$file not found, skipping..."
           fi
