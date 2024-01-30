@@ -23,11 +23,18 @@ jobs:
     - name: Build
       run: |
         make build GOOS=${{ matrix.os }} GOARCH=${{ matrix.arch }}
+    - name: Install Syft
+      run: curl -sSfL https://raw.githubusercontent.com/anchore/syft/main/install.sh | sh -s -- -b /usr/local/bin
+    - name: Generate SBOM
+      run: syft goeventd -o text > NOTICE
     - name: Upload Artifact
       uses: actions/upload-artifact@v2
       with:
         name: goeventd-${{ matrix.os }}-${{ matrix.arch }}
-        path: goeventd
+        path: |
+          goeventd
+          LICENSE.md
+          NOTICE
 
   release:
     needs: build
@@ -53,6 +60,6 @@ jobs:
         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
       with:
         upload_url: ${{ steps.create_release.outputs.upload_url }}
-        asset_path: ./goeventd-${{ matrix.os }}-${{ matrix.arch }}
+        asset_path: ./goeventd
         asset_name: goeventd-${{ matrix.os }}-${{ matrix.arch }}
         asset_content_type: application/octet-stream
