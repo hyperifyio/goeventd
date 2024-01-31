@@ -132,20 +132,21 @@ jobs:
     - name: Upload Release Assets
       run: |
         for os in linux darwin windows; do
-        for arch in amd64 arm64 386 mips mips64 mips64le mipsle ppc64 ppc64le riscv64 s390x; do
-          file="goeventd-${{ env.TAG_NAME }}-$os-$arch/goeventd-${{ env.TAG_NAME }}-$os-$arch.zip"
-          if [ -f "$file" ]; then
-            echo "Uploading $file"
-            curl -L \
-              -X POST \
-              -H "Authorization: Bearer ${{ secrets.GITHUB_TOKEN }}" \
-              -H "X-GitHub-Api-Version: 2022-11-28" \
-              -H "Content-Type: application/octet-stream" \
-              --data-binary @"$file" \
-              "${{ steps.create_release.outputs.upload_url }}=$(basename $file)"
-          else
-            echo "$file not found, skipping..."
-          fi
+          for arch in amd64 arm64 386 mips mips64 mips64le mipsle ppc64 ppc64le riscv64 s390x; do
+            file="goeventd-${{ env.TAG_NAME }}-$os-$arch/goeventd-${{ env.TAG_NAME }}-$os-$arch.zip"
+            if [ -f "$file" ]; then
+              echo "Uploading $file"
+              curl -L \
+                -X POST \
+                -H "Authorization: Bearer ${{ secrets.GITHUB_TOKEN }}" \
+                -H "X-GitHub-Api-Version: 2022-11-28" \
+                -H "Content-Type: application/octet-stream" \
+                --data-binary @"$file" \
+                "${{ steps.create_release.outputs.upload_url }}=$(basename $file)"
+            else
+              echo "$file not found, skipping..."
+            fi
+          done
         done
       env:
         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
