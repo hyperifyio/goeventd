@@ -133,7 +133,7 @@ jobs:
       run: |
         for os in linux darwin windows; do
           for arch in amd64 arm64 386 mips mips64 mips64le mipsle ppc64 ppc64le riscv64 s390x; do
-            upload_url=$(echo "${{ steps.create_release.outputs.upload_url }}" | sed 's@/assets([\?\{][^\/]*)$@/assets@')
+            upload_url=$(echo "${{ steps.create_release.outputs.upload_url }}" | sed -re 's@/assets([?{][^\/]*)$@/assets@')
             file="goeventd-${{ env.TAG_NAME }}-$os-$arch/goeventd-${{ env.TAG_NAME }}-$os-$arch.zip"
             if [ -f "$file" ]; then
               echo
