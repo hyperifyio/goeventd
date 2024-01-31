@@ -40,6 +40,16 @@ jobs:
           arch: mips64le
         - os: windows
           arch: mipsle
+        - os: windows
+          arch: mips
+        - os: windows
+          arch: ppc64
+        - os: windows
+          arch: ppc64le
+        - os: windows
+          arch: riscv64
+        - os: windows
+          arch: s390x
 
     steps:
 
