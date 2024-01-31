@@ -6,13 +6,12 @@ import (
     "encoding/json"
     "flag"
     "fmt"
+    "github.com/hyperifyio/goeventd/eventtrigger"
     "github.com/hyperifyio/goeventd/messaging"
     "github.com/hyperifyio/goeventd/natsclient"
     "github.com/nats-io/nats.go"
-    "io/ioutil"
     "log"
     "os"
-    "os/exec"
 )
 
 type ServiceConfig struct {
@@ -26,15 +25,19 @@ type Config struct {
 }
 
 var (
-    natsServer = flag.String("nats", os.Getenv("GOEVENTD_NATS_URL"), "The NATS server URL")
-    subject = flag.String("subject", os.Getenv("GOEVENTD_SUBJECT"), "The NATS subject to subscribe to")
-    service = flag.String("service", os.Getenv("GOEVENTD_SERVICE"), "The SystemD service to trigger")
-    shutdownAfterRun = flag.Bool("once", false, "Shutdown the service after one successful SystemD service execution")
-    configFilePath = flag.String("config", os.Getenv("GOEVENTD_CONFIG"), "Path to configuration file")
+    natsServer = flag.String("nats", getEnvOrDefault("GOEVENTD_NATS_URL", nats.DefaultURL), "The NATS server URL")
+    subject = flag.String("subject", getEnvOrDefault("GOEVENTD_SUBJECT", ""), "The NATS subject to subscribe to")
+    service = flag.String("service", getEnvOrDefault("GOEVENTD_SERVICE", ""), "The SystemD service to trigger")
+    shutdownAfterRun = flag.Bool("once", false, "Shutdown the service after one service triggering")
+    configFilePath = flag.String("config", getEnvOrDefault("GOEVENTD_CONFIG", ""), "Path to configuration file")
+    eventType = flag.String("event-type", getEnvOrDefault("GOEVENTD_EVENT_TYPE","command"), "The event triggering mechanism (command/file)")
+    fileTemplate = flag.String(getEnvOrDefault("GOEVENTD_FILE_TEMPLATE","file-template"), "./%s.trigger", "The path to trigger services by file modifications. The service name can be provided in %s placeholder. (when event-type is file)")
+    commandTemplate = flag.String(getEnvOrDefault("GOEVENTD_COMMAND_TEMPLATE","command-template"), "systemctl start %s", "The command to trigger services. The service name can be provided in %s placeholder. (when event-type is command)")
 )
 
 func main() {
 
+    var trigger eventtrigger.EventTrigger
     var msgHandler messaging.MessageHandler
     var config *Config
     var err error
@@ -75,6 +78,25 @@ func main() {
         }
     }
 
+    // Initialize appropriate trigger
+    switch *eventType {
+
+    case "command":
+        if *commandTemplate == "" {
+            log.Fatal("--command-template cannot be empty")
+        }
+        trigger = &eventtrigger.CommandTrigger{CommandTemplate: *commandTemplate}
+
+    case "file":
+        if *fileTemplate == "" {
+            log.Fatal("--file-template cannot be empty")
+        }
+        trigger = &eventtrigger.FileTrigger{FileFormat: *fileTemplate}
+
+    default:
+        log.Fatalf("Unknown event type: %s", *eventType)
+    }
+
     // Initialize NATS client
     msgHandler = &natsclient.NATSClient{}
     err = msgHandler.Initialize(messaging.Config{ServerURL: *natsServer})
@@ -87,13 +109,19 @@ func main() {
     // Subscribe to a subject
     for _, sc := range config.ServiceConfig {
         err := msgHandler.Subscribe(sc.Subject, func(msg string) {
-            fmt.Printf("Event(%s): %s\n", sc.Subject, msg)
-            triggerSystemDService(sc.ServiceName)
+            log.Printf("Event '%s' received with '%s'\n", sc.Subject, msg)
+            if err := trigger.TriggerEvent(sc.ServiceName); !err {
+                log.Printf("Error triggering event for service %s\n", sc.ServiceName)
+            }
+            if *shutdownAfterRun {
+                log.Printf("Closing service since --once was enabled.\n")
+                os.Exit(0)
+            }
         })
         if err != nil {
             log.Fatalf("Error subscribing to subject %s: %s", sc.Subject, err)
         } else {
-            fmt.Printf("Successfully subscribed to: %s\n", sc.Subject)
+            log.Printf("Successfully subscribed to: %s\n", sc.Subject)
         }
     }
 
@@ -101,20 +129,8 @@ func main() {
     select {}
 }
 
-func triggerSystemDService(service string) bool {
-    fmt.Printf("Executing: systemctl start %s\n", service)
-    cmd := exec.Command("systemctl", "start", service)
-    err := cmd.Run()
-    if err != nil {
-        fmt.Printf("Error triggering SystemD service %s using 'systemctl start %s': %s\n", service, service, err)
-        return false
-    }
-    fmt.Printf("Successfully triggered SystemD service: %s\n", service)
-    return true
-}
-
 func readConfig(filePath string) (*Config, error) {
-    file, err := ioutil.ReadFile(filePath)
+    file, err := os.ReadFile(filePath)
     if err != nil {
         return nil, err
     }
@@ -124,4 +140,12 @@ func readConfig(filePath string) (*Config, error) {
     return nil, err
     }
     return &config, nil
+}
+
+func getEnvOrDefault(key, defaultValue string) string {
+    value := os.Getenv(key)
+    if value == "" {
+        return defaultValue
+    }
+    return value
 }

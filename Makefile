@@ -2,6 +2,9 @@
 
 GO_EVENTD_SOURCES := ./messaging/messaging.go \
               ./natsclient/natsclient.go \
+              ./eventtrigger/eventtrigger.go \
+              ./eventtrigger/filetrigger.go \
+              ./eventtrigger/commandtrigger.go \
               ./cmd/goeventd/main.go
 
 GO_EVENTD_CLIENT_SOURCES := ./cmd/goeventd-client/main.go

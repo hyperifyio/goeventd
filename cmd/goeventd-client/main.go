@@ -26,7 +26,7 @@ func main() {
 	}
 
 	if *subject == "" {
-		log.Fatal("Subject cannot be empty")
+		log.Fatal("--subject cannot be empty")
 	}
 
 	// Connect to the NATS server.
