@@ -41,15 +41,21 @@ This will display help information, including available flags:
 
 ```
 Usage of ./goeventd:
-  --config string
+  -command-template string
+        The command to trigger services. The service name can be provided in %s placeholder. (when event-type is command) (default "systemctl start %s")
+  -config string
         Path to configuration file
-  --nats string
-        The NATS server URL (default "nats://localhost:4222")
-  --once
-        Shutdown the service after one successful SystemD service execution
-  --service string
+  -event-type string
+        The event triggering mechanism (command/file) (default "command")
+  -file-template string
+        The path to trigger services by file modifications. The service name can be provided in %s placeholder. (when event-type is file) (default "./%s.trigger")
+  -nats string
+        The NATS server URL (default "nats://127.0.0.1:4222")
+  -once
+        Shutdown the service after one service triggering
+  -service string
         The SystemD service to trigger
-  --subject string
+  -subject string
         The NATS subject to subscribe to
 ```
 
