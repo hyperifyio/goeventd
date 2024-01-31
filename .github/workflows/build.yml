@@ -129,7 +129,7 @@ jobs:
           contact sales at [sales@hg.fi](mailto:sales@hg.fi) or 
           visit our [website](https://www.heusalagroup.com).
 
-          Please refer to the full license text for detailed terms and conditions.
+          Please refer to [the full license text](https://github.com/hyperifyio/goeventd/blob/main/LICENSE.md) for detailed terms and conditions.
 
     - name: Upload Release Assets
       run: |
