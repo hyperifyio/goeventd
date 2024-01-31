@@ -13,7 +13,7 @@ jobs:
     runs-on: ubuntu-latest
     strategy:
       matrix:
-        os: [linux]
+        os: [linux, darwin, windows]
         arch: [amd64, arm64, 386, mips, mips64, mips64le, mipsle, ppc64, ppc64le, riscv64, s390x]
     steps:
 
@@ -95,8 +95,9 @@ jobs:
 
     - name: Upload Release Assets
       run: |
+        for os in linux darwin windows; do
         for arch in amd64 arm64 386 mips mips64 mips64le mipsle ppc64 ppc64le riscv64 s390x; do
-          file="goeventd-${{ env.TAG_NAME }}-linux-$arch/goeventd-${{ env.TAG_NAME }}-linux-$arch.zip"
+          file="goeventd-${{ env.TAG_NAME }}-$os-$arch/goeventd-${{ env.TAG_NAME }}-$os-$arch.zip"
           if [ -f "$file" ]; then
             echo "Uploading $file"
             curl -L \
