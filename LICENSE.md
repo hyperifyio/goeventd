@@ -1,6 +1,6 @@
 # HG Evaluation and Non-Commercial License (version 1)
 
-Copyright © 2024 Heusala Group Ltd
+Copyright © 2024 Heusala Group Ltd <info@hg.fi>
 
 ### 1. Scope of License
 
